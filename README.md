@@ -2,6 +2,11 @@
 
 A Python script to dump Firestore collection data with CSV format.
 
+## Requirements
+
+- Python 3.9
+- Poetry 1.x
+
 ## Usage
 
 Clone this repo.
@@ -10,7 +15,7 @@ Clone this repo.
 git clone https://github.com/gh640/firestore2csv.git
 ```
 
-Install dependency packages with Poetry.
+Install dependency packages with [Poetry](https://github.com/python-poetry/poetry).
 
 ```bash
 cd firestore2csv
