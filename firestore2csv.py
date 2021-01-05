@@ -27,7 +27,7 @@ def main():
 
 def get_args():
     """Get command line args"""
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--cred-file', type=argparse.FileType('r'), required=True)
     parser.add_argument('--collection-name', required=True)
     parser.add_argument('--fields', required=True)
