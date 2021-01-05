@@ -3,23 +3,22 @@
 import argparse
 import csv
 import sys
-from pathlib import Path
 
 from firebase_admin import credentials, firestore, initialize_app
 
-CRED_FILE = str(Path(__name__).resolve().parent / 'firebase-privateKey.json')
 DIRECTIONS = {'ASC', 'DESC'}
 
 
 def main():
     """Main function"""
     args = get_args()
+    cred_file = args.cred_file.name
     collection_name = args.collection_name
     fields = args.fields.split(',')
     order_by = args.order_by
     direction = args.direction
 
-    client = firebase_client(CRED_FILE)
+    client = firebase_client(cred_file)
     collection = client.collection(collection_name)
 
     writer = csv_writer(sys.stdout, fields)
@@ -29,6 +28,7 @@ def main():
 def get_args():
     """Get command line args"""
     parser = argparse.ArgumentParser()
+    parser.add_argument('--cred-file', type=argparse.FileType('r'), required=True)
     parser.add_argument('--collection-name', required=True)
     parser.add_argument('--fields', required=True)
     parser.add_argument('--order-by', required=True)
