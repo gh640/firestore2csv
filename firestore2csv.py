@@ -1,5 +1,6 @@
 """Export data in a Firestore collection as CSV."""
 
+import argparse
 import csv
 import sys
 from pathlib import Path
@@ -7,18 +8,33 @@ from pathlib import Path
 from firebase_admin import credentials, firestore, initialize_app
 
 CRED_FILE = str(Path(__name__).resolve().parent / 'firebase-privateKey.json')
-COLLECTION_NAME = 'my_collection_name'
-FIELDS = ['field_a', 'field_b', 'field_c']
-ORDER_BY = 'field_d'
-DIRECTION = 'DESC'  # 'ASC'|'DESC'
+DIRECTIONS = {'ASC', 'DESC'}
 
 
 def main():
     """Main function"""
+    args = get_args()
+    collection_name = args.collection_name
+    fields = args.fields.split(',')
+    order_by = args.order_by
+    direction = args.direction
+
     client = firebase_client(CRED_FILE)
-    collection = client.collection(COLLECTION_NAME)
-    writer = csv_writer(sys.stdout, FIELDS)
-    dump_collection(writer, collection, ORDER_BY, DIRECTION)
+    collection = client.collection(collection_name)
+
+    writer = csv_writer(sys.stdout, fields)
+    dump_collection(writer, collection, fields, order_by, direction)
+
+
+def get_args():
+    """Get command line args"""
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--collection-name', required=True)
+    parser.add_argument('--fields', required=True)
+    parser.add_argument('--order-by', required=True)
+    parser.add_argument('--direction', choices=DIRECTIONS, required=True)
+
+    return parser.parse_args()
 
 
 def firebase_client(cred_file):
@@ -34,26 +50,25 @@ def csv_writer(file, fields):
     return csv.DictWriter(file, fields)
 
 
-def dump_collection(writer, collection, order_by, direction):
+def dump_collection(writer, collection, fields, order_by, direction_str):
     """Dump a collection as CSV"""
+    direction = map_direction(direction_str)
     writer.writeheader()
-    for snapshot in collection.order_by(
-        order_by, direction=map_direction(direction)
-    ).get():
+    for snapshot in collection.order_by(order_by, direction=direction).get():
         data = snapshot.to_dict()
-        writer.writerow(data)
+        writer.writerow({k: v for k, v in data.items() if k in fields})
 
 
-def map_direction(direction):
+def map_direction(direction_str):
     """Map string direction to Firebase constant"""
     map_ = {
         'ASC': firestore.Query.DESCENDING,
         'DESC': firestore.Query.ASCENDING,
     }
     try:
-        return map_[direction]
+        return map_[direction_str]
     except KeyError:
-        raise ValueError('Invalid direction {}.'.format(direction))
+        raise ValueError('Invalid direction {}.'.format(direction_str))
 
 
 if __name__ == '__main__':
