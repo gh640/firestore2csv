@@ -37,6 +37,6 @@ Available options (all required):
 
 - `--cred-file`
 - `--collection-name`
-- `--fields FIELDS`
+- `--fields`
 - `--order-by`
 - `--direction`
